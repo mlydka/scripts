@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -e
+
+# install dependencies
+sudo aptitude -y install libmozjs-dev libicu-dev libcurl4-gnutls-dev libtool
+
+cd /opt
+
+# download
+sudo wget http://mirror.catn.com/pub/apache/couchdb/releases/1.2.0/apache-couchdb-1.2.0.tar.gz
+sudo tar -zxvf apache-couchdb-1.2.0.tar.gz
+sudo rm apache-couchdb-1.2.0.tar.gz
+
+cd /opt/apache-couchdb-1.2.0
+
+# configure
+./configure --prefix=/usr/local/
+
+# compile and install
+make
+sudo make install
+
+# add couchdb user account
+sudo adduser --system --home /usr/local/var/lib/couchdb --no-create-home --shell /bin/bash --group --gecos "CouchDB Administrator" couchdb
+
+# change files ownership and permissions
+sudo chown -R couchdb:couchdb /usr/local/var/{lib,log,run}/couchdb /usr/local/etc/couchdb
+sudo chmod 0770 /usr/local/var/{lib,log,run}/couchdb/
+sudo chmod 664 /usr/local/etc/couchdb/*.ini
+sudo chmod 775 /usr/local/etc/couchdb/*.d
+
+sudo ln -s /usr/local/etc/init.d/couchdb /etc/init.d/couchdb
+
+# start CouchDB on system start
+# sudo update-rc.d couchdb defaults
+
+# start CouchDB
+sudo /etc/init.d/couchdb start
